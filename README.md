@@ -12,7 +12,7 @@ OpenGL and GLUT libraries installed
 ### Building the Project:
 1. Open Command Prompt or PowerShell in the project directory.
 2. Run the build command (adjust paths to libraries if needed):
-- g++ -o ZombieGame.exe main.cpp Zombie.cpp -lglut32 -lopengl32 -lglu32
+- g++ -o ZombieGame.exe arcade.cpp zombie.cpp -lglut32 -lopengl32 -lglu32
 
 ### After building the project:
 
