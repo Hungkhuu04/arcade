@@ -1,5 +1,5 @@
 // Zombie.cpp
-#include "Zombie.h"
+#include "zombie.h"
 #include <GL/glut.h>
 
 Zombie::Zombie(float x, float y) : x(x), y(y), speed(2.0f) {
