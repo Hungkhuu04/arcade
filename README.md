@@ -10,20 +10,25 @@ C++ Compiler (GCC MinGW or MSVC for Windows)
 OpenGL and GLUT libraries installed
 
 ### Building the Project:
-1. Open Command Prompt or PowerShell in the project directory.
-2. Run the build command (adjust paths to libraries if needed):
-- g++ arcade/arcade.cpp arcade/zombie.cpp -o zombie_game -lGL -lGLU -lglut (for ssh which uses a unix-like system)
-  - Then run the game with ./zombie_game(this is work in progress because can not figure out display.) 
-- g++ -m32 -o zombie_game.exe arcade/arcade.cpp arcade/zombie.cpp -IDependencies/freeglut/include -LDependencies/freeglut/lib/Win32 -lfreeglut -lopengl32 -lglu32(for the local system)
-  - Then run the game with ./zombie_game.exe.
+1. Open Terminal.
+2. In the desired folder, run: git clone git@github.com:Hungkhuu04/arcade.git
+3. Cd into arcade (cd arcade). MAKE SURE YOU ONLY CD INTO THE FIRST ARCADE FOLDER!!!!
+4. Run the build command (adjust paths to libraries if needed):
+   - On CSIL computers:
 
+      g++ arcade/arcade.cpp arcade/zombie.cpp -o zombie_game -lGL -lGLU -lglut
+
+    - On Local Windows computers with C++ Complier Installed(MinGW or MSVC):
+
+      g++ -m32 -o zombie_game arcade/arcade.cpp arcade/zombie.cpp -IDependencies/freeglut/include -LDependencies/freeglut/lib/Win32 -lfreeglut -lopengl32 -lglu32
+      
 ### After building the project:
-
 An executable named ZombieGame will be created. Run this executable to start the game:
-- ZombieGame.exe
+- ./zombie_game
 
-## Code Organization
+## Code Organization:
 - arcade.cpp: Contains the main game loop and initialization code.
 - zombie.cpp and zombie.h: Define the Zombie class, handling the behavior and rendering of zombies.
 
-
+## Instructions:
+- Use WASD to move the block around in their respective directions.
