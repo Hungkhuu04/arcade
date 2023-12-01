@@ -6,12 +6,11 @@
 class Zombie {
 public:
     Zombie(float x, float y);
-    void update();
+    void update(int playerX, int playerY);
     void draw();
 
 private:
-    float x, y;
-    float speed;
+    float x, y, speed;
 };
 
 #endif
