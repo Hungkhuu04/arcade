@@ -12,15 +12,15 @@ OpenGL and GLUT libraries installed
 ### Building the Project:
 1. Open Terminal.
 2. In the desired folder, run: git clone git@github.com:Hungkhuu04/arcade.git
-3. Cd into arcade (cd arcade). MAKE SURE YOU ONLY CD INTO THE FIRST ARCADE FOLDER!!!!
+3. Cd into arcade (cd arcade) aka repository folder.
 4. Run the build command (adjust paths to libraries if needed):
    - On CSIL computers:
 
-      g++ arcade/arcade.cpp arcade/zombie.cpp -o zombie_game -lGL -lGLU -lglut
+      g++ zombieGame/arcade.cpp zombieGame/zombie.cpp -o zombie_game -lGL -lGLU -lglut
 
     - On Local Windows computers with C++ Complier Installed(MinGW or MSVC):
 
-      g++ -m32 -o zombie_game arcade/arcade.cpp arcade/zombie.cpp -IDependencies/freeglut/include -LDependencies/freeglut/lib/Win32 -lfreeglut -lopengl32 -lglu32
+      g++ -m32 -o zombie_game zombieGame/arcade.cpp zombieGame/zombie.cpp -IDependencies/freeglut/include -LDependencies/freeglut/lib/Win32 -lfreeglut -lopengl32 -lglu32
       
 ### After building the project:
 An executable named ZombieGame will be created. Run this executable to start the game:
