@@ -6,20 +6,21 @@
 #include <cstring>  
 
 // Player properties
-float playerX = 400.0f; // Initial X position
-float playerY = 300.0f; // Initial Y position
-float playerSize = 50.0f; // Size of the player box
+float playerX = 400.0f; // X position
+float playerY = 300.0f; // Y position
+float playerSize = 50.0f; // Hit Box Size
 
-// Key state array
 bool keyStates[256];
 
-// Zombie properties
+
 std::vector<Zombie> zombies;
 void initializeZombies() {
     srand(static_cast<unsigned int>(time(0)));
-
-    // Number of zombies to create
-    const int numberOfZombies = 3;  
+    
+    // Generate a random number of zombies between 5 and 15
+    const int minZombies = 5;
+    const int maxZombies = 15;
+    const int numberOfZombies = rand() % (maxZombies - minZombies + 1) + minZombies;
 
     for (int i = 0; i < numberOfZombies; ++i) {
         float randomX = static_cast<float>(rand() % 800); // Random X position between 0 and 799
@@ -29,7 +30,8 @@ void initializeZombies() {
     }
 }
 
-// Function prototypes
+
+
 void update(int value);
 void render(void);
 void handleKeyboard(unsigned char key, int x, int y);
@@ -62,7 +64,7 @@ int main(int argc, char** argv) {
 }
 
 void update(int value) {
-    float speed = 10.0f; // Adjust the speed as necessary
+    float speed = 10.0f; // Player Speed
 
     if (keyStates['w']) playerY += speed;
     if (keyStates['s']) playerY -= speed;
@@ -76,7 +78,7 @@ void update(int value) {
     if (playerY > 600 - playerSize / 2) playerY = 600 - playerSize / 2;
 
     for (auto& zombie : zombies) {
-        zombie.update();
+        zombie.update(playerX, playerY);    
     }
 
     glutPostRedisplay();
