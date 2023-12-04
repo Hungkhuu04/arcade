@@ -8,6 +8,11 @@
 
 class GameController {
 public:
+    enum class GameState {
+        START,
+        PLAYING,
+        GAME_OVER
+    };
     static void Initialize();
     static void KeyboardHandler(unsigned char key, int x, int y);
     static void KeyboardUpHandler(unsigned char key, int x, int y);
@@ -22,6 +27,7 @@ public:
     static bool keyStates[256];
     static std::vector<Bullet> bullets;
     static std::vector<Zombie> zombies;
+    static GameState currentState; 
 
 private:
     // Private members (if any)

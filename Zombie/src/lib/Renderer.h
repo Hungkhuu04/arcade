@@ -6,6 +6,7 @@ public:
     static void RenderPlayer(float x, float y);
     static void RenderZombie(float x, float y, float width, float height);
     static void RenderBullet(float x, float y, float width, float height);
+    static void RenderHealth(float health);
 
 private:
     static void DrawCircle(float x, float y, float radius);
