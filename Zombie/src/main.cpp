@@ -11,25 +11,59 @@ float cursorX = 0.0f, cursorY = 0.0f;
 void initOpenGL() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set clear color to black
 }
+void renderStartingScreen() {
+    // Set color to white
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // Draw placeholder for the starting screen
+    // This is just a simple rectangle - replace this with actual rendering code
+    glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+
+    // TODO: Render text "Press 'S' to Start" using a text rendering library like FreeType
+}
+
+void renderGameOverScreen() {
+    // Set color to red
+    glColor3f(1.0f, 0.0f, 0.0f);
+
+    // Draw placeholder for the game over screen
+    glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+
+    // TODO: Render text "Game Over. Press 'R' to Restart" using a text rendering library
+}
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
 
-    GameController::player->Render(); // Render the player
+    switch (GameController::currentState) {
+        case GameController::GameState::START:
+            renderStartingScreen();
+            break;
+        case GameController::GameState::PLAYING:
+            // Render the player
+            GameController::player->Render();
 
-    // Render bullets
-    for (auto& bullet : GameController::bullets) {
-        bullet.Render();
+            // Render each bullet
+            for (auto& bullet : GameController::bullets) {
+                bullet.Render();
+            }
+
+            // Render each zombie
+            for (auto& zombie : GameController::zombies) {
+                zombie.Render();
+            }
+
+            // Render the player's health
+            Renderer::RenderHealth(GameController::player->GetHealth());
+
+            break;
+        case GameController::GameState::GAME_OVER:
+            renderGameOverScreen();
+            break;
     }
 
-    // Render zombies
-    for (auto& zombie : GameController::zombies) {
-        zombie.Render();
-    }
-
-    glutSwapBuffers(); // Swap front and back buffers
+    glutSwapBuffers(); // Swap the front and back frame buffers (double buffering)
 }
-
 
 void mouseMotion(int x, int y) {
     cursorX = static_cast<float>(x) / 400.0f - 1.0f;
@@ -53,8 +87,8 @@ void timer(int value) {
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
-    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(1024, 768);
+    glutInitWindowPosition(0, 0);
     glutCreateWindow("Zombie Survival Game");
 
     initOpenGL();

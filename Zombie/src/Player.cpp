@@ -6,10 +6,10 @@
 #include "lib/stb_image.h"
 
 Player::Player(float x, float y) 
-    : x(x), y(y), width(0.1f), height(0.1f), speed(0.01f), health(100.0f), shootCooldown(0.3f), shootTimer(0.0f) {
+    : x(x), y(y), width(0.1125f), height(0.2f), speed(0.01f), health(100.0f), shootCooldown(0.3f), shootTimer(0.0f), damageCooldown(0.0f), damageCooldownDuration(0.25f) {
     
-    this->spriteWidth = static_cast<float>(width);
-    this->spriteHeight = static_cast<float>(height);
+    this->spriteWidth = static_cast<float>(width) + 0.005f;
+    this->spriteHeight = static_cast<float>(height) + 0.005f;
     
     loadTexture("Zombie/src/assets/zombie.png");
 }
@@ -18,7 +18,6 @@ void Player::MoveUp()    { y += speed; }
 void Player::MoveDown()  { y -= speed; }
 void Player::MoveLeft()  { x -= speed; }
 void Player::MoveRight() { x += speed; }
-
 
 void Player::Render() {
     glEnable(GL_TEXTURE_2D);
@@ -35,6 +34,30 @@ void Player::Render() {
     glDisable(GL_TEXTURE_2D);
 }
 
+bool Player::IsAlive() const {
+    return health > 0;
+}
+
+void Player::TakeDamage(float amount) {
+    if (damageCooldown <= 0) {
+        health -= amount;
+        damageCooldown = damageCooldownDuration; // Reset cooldown
+    }
+}
+
+void Player::UpdateCooldown(float deltaTime) {
+    if (damageCooldown > 0) {
+        damageCooldown -= deltaTime;
+    }
+}
+
+bool Player::IsDamageable() const {
+    return damageCooldown <= 0;
+}
+
+bool Player::IsDead() const {
+    return health <= 0;
+}
 
 void Player::loadTexture(const char* filepath) {
     // Flip image vertically

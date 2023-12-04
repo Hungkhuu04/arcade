@@ -5,11 +5,11 @@
 // Constructor - Initialize member variables
 Zombie::Zombie(float x, float y) 
     : x(x), y(y), 
-      speed(0.009f), 
+      speed(0.005f), 
       health(20.0f), 
       width(0.1f), 
       height(0.1f), 
-      damage(10.0f),
+      damage(2.0f),
       damageCooldown(0.0f),        // Initialize cooldown timer to 0
       damageCooldownDuration(0.5f) // Set the duration of the cooldown
 {}
