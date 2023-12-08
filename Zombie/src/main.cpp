@@ -15,6 +15,7 @@ GLuint startScreen;
 GLuint loadTexture(const char* filename);
 void renderBackdrop(GLuint texture);
 
+//Initialize OpenGL settings
 void initOpenGL() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -24,18 +25,21 @@ void initOpenGL() {
     gameOverScreen = loadTexture("Zombie/src/assets/EndScreen.png");
     startScreen = loadTexture("Zombie/src/assets/StartingScreen.png");
 }
+
+//Render starting screen elements
 void renderStartingScreen() {
     glColor3f(1.0f, 1.0f, 1.0f);
 
 }
 
+//Render game over screen elements
 void renderGameOverScreen() {
     glColor3f(1.0f, 0.0f, 1.0f);
 
     Renderer::RenderScore(GameController::GetScore());
 }
 
-// Display the game scenes based on the current game state using OpenGL.
+//Display function to render the game scenes based on current game state
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     switch (GameController::currentState) {
@@ -80,12 +84,13 @@ void display() {
 
     glutSwapBuffers(); 
 }
-
+//Tracks the motion mouse for the cursor.
 void mouseMotion(int x, int y) {
     cursorX = static_cast<float>(x) / 514.0f - 1.0f;
     cursorY = -static_cast<float>(y) / 384.0f + 1.0f;
 }
 
+//A timer function so that other elements of the game can be upodated.
 void timer(int value) {
     GameController::UpdatePlayer();
     GameController::Shoot(cursorX, cursorY);
@@ -100,7 +105,7 @@ void timer(int value) {
     glutTimerFunc(16, timer, 0);
 }
 
-
+//Main function to set up OpenGL and enter the main loop
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
@@ -121,7 +126,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-
+//Function to load texture from file.
 GLuint loadTexture(const char* filename) {
     stbi_set_flip_vertically_on_load(true); 
     int width, height, nrChannels;
@@ -147,7 +152,7 @@ GLuint loadTexture(const char* filename) {
     return texture;
 }
 
-
+//Renders the backdrop based on a given texture.
 void renderBackdrop(GLuint texture) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);

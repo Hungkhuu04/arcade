@@ -5,7 +5,7 @@
 /*This is constructor that intializes specified attributes for the sprite called BossZombie*/
 BossZombie::BossZombie(float x, float y) : Zombie(x, y), shootCooldown(1.0f), shootTimer(0.0f) {
     SetHealth(120.0f);
-    SetSpeed(0.005f);
+    SetSpeed(0.01f);
     SetWidth(0.1125f * 1.2f);
     SetHeight(0.3f * 1.2f);
     SetSpriteWidth(GetWidth() * 1.05f);

@@ -13,6 +13,8 @@
 #include <array>
 #include <fstream>
 
+
+//Global Variable Declarations
 GameController::GameState GameController::currentState = GameController::GameState::START;
 Player* GameController::player = nullptr;
 bool GameController::keyStates[256];
@@ -28,6 +30,7 @@ float GameController::spawnRate = 2.0f;
 int GameController::score = 0;
 std::array<int, GameController::LEADERBOARD_SIZE> GameController::leaderboard = {};
 
+//Initializes game elements at the start or restart of the game
 void GameController::Initialize() {
     currentState = GameState::START;
     bullets.clear();
@@ -42,6 +45,7 @@ void GameController::Initialize() {
     LoadLeaderboard();
 }
 
+//Handles keyboard input for gameplay
 void GameController::KeyboardHandler(unsigned char key, int x, int y) {
     if (currentState == GameState::START) {
         if (key == 's') {
@@ -64,11 +68,14 @@ void GameController::KeyboardHandler(unsigned char key, int x, int y) {
     }
 }
 
+//Handles keyboard key release
 void GameController::KeyboardUpHandler(unsigned char key, int x, int y) {
     if (currentState == GameState::PLAYING) {
         keyStates[key] = false;
     }
 }
+
+//Updates player's position and state
 void GameController::UpdatePlayer() {
     if (currentState == GameState::PLAYING) {
     if (keyStates['w'] || keyStates['W']) player->MoveUp();
@@ -78,7 +85,7 @@ void GameController::UpdatePlayer() {
     player->UpdateCooldown(1.0f / 60.0f);
     }
 }
-
+//Handles shooting mechanics
 void GameController::Shoot(float targetX, float targetY) {
     if (currentState == GameState::PLAYING) {
     if (player->GetShootTimer() >= player->GetShootCooldown()) {
@@ -88,7 +95,7 @@ void GameController::Shoot(float targetX, float targetY) {
     }
 }
 
-
+//Updates bullets' positions and states
 void GameController::UpdateBullets() {
     if (currentState == GameState::PLAYING) {
     float currentTimer = player->GetShootTimer();
@@ -108,7 +115,7 @@ void GameController::UpdateBullets() {
 
 
 
-
+//Checks and handles collisions between bullets and zombies
 void GameController::CheckBulletZombieCollisions() {
     if (currentState == GameState::PLAYING) {
     for (auto& bullet : bullets) {
@@ -148,7 +155,7 @@ void GameController::CheckBulletZombieCollisions() {
                      bossZombies.end());
     }
 
-
+//Checks and handles collisions between boss zombie bullets and the player
 void GameController::CheckBossZombieBulletPlayerCollision() {
     if (currentState == GameState::PLAYING) {
     for (auto& bullet : bossZombieBullets) {
@@ -175,7 +182,7 @@ void GameController::CheckBossZombieBulletPlayerCollision() {
 }
 }
 
-
+//Handles player collisions with zombies
 void GameController::HandlePlayerZombieCollision() {
     if (currentState == GameState::PLAYING) {
     float playerWidth = player->GetWidth();
@@ -204,7 +211,7 @@ void GameController::HandlePlayerZombieCollision() {
     }
 }
 
-
+//Updates zombie states and positions
 void GameController::UpdateZombies() {
     if (currentState == GameState::PLAYING) {
     float deltaTime = 1.0f / 60.0f;
@@ -227,7 +234,7 @@ void GameController::UpdateZombies() {
         }
     }
 
-    //Check Collisions for zombies.
+    //Checks Collisions for zombies.
     for (size_t i = 0; i < zombies.size(); ++i) {
         for (size_t j = i + 1; j < zombies.size(); ++j) {
             auto& zombie1 = zombies[i];
@@ -255,7 +262,7 @@ void GameController::UpdateZombies() {
         }
     }
 
-    //Check Collisions for bossZombies.
+    //Checks Collisions for bossZombies.
        for (size_t i = 0; i < bossZombies.size(); ++i) {
         for (size_t j = i + 1; j < bossZombies.size(); ++j) {
             auto& bossZombie1 = bossZombies[i];
@@ -296,13 +303,13 @@ void GameController::UpdateZombies() {
                     [](const BossZombie& bz) { return bz.IsDead(); }),
                     bossZombies.end());
 }
-
+//Handles the shoot from the boss zombie.
 void GameController::ShootFromBossZombie(const BossZombie& bossZombie) {
     float targetX = player->GetX();
     float targetY = player->GetY();
     bossZombieBullets.push_back(Bullet(bossZombie.GetX(), bossZombie.GetY(), targetX, targetY, Bullet::BulletType::BossZombie));
 }
-
+//Spawns a zombie.
 void GameController::SpawnZombie() {
     if (currentState == GameState::PLAYING) {
         static std::random_device rd;
@@ -320,7 +327,7 @@ void GameController::SpawnZombie() {
         zombies.push_back(Zombie(x, y));
     }
 }
-
+//Spawns a boss zombie. 
 void GameController::SpawnBossZombie() {
     if (currentState == GameState::PLAYING) {
         static std::random_device rd;
@@ -339,7 +346,7 @@ void GameController::SpawnBossZombie() {
     }
 }
 
-
+//Increment the wave and update game difficulty
 void GameController::IncrementWave() {
     currentWave++;
     for (auto& zombie : zombies) {
@@ -366,19 +373,22 @@ void GameController::IncrementWave() {
     }
 }
 
-
+//Gets the currentWave.
 int GameController::GetWave() {
     return currentWave;
 }
 
+//Gets the timer.
 float GameController::GetTimer() {
     return timer;
 }
 
+//Gets the score.
 int GameController::GetScore() {
     return score;
 }
 
+// Update the leaderboard with the current score
 void GameController::UpdateLeaderboard() {
     int position = -1;
     for (int i = 0; i < LEADERBOARD_SIZE; ++i) {
@@ -396,6 +406,7 @@ void GameController::UpdateLeaderboard() {
     }
 }
 
+//Saves the leaderboard scores in a file. 
 void GameController::SaveLeaderboard() {
     std::ofstream file("Zombie/src/data/leaderboard.txt");
     if (file.is_open()) {
@@ -408,6 +419,7 @@ void GameController::SaveLeaderboard() {
     }
 }
 
+//Loads the leaderboard scores from a a file. 
 void GameController::LoadLeaderboard() {
     std::ifstream file("Zombie/src/data/leaderboard.txt");
     int score;

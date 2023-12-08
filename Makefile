@@ -8,8 +8,8 @@ LIBS = -lGL -lGLU -lglut
 
 # Source files
 SRCS = Zombie/src/main.cpp Zombie/src/Renderer.cpp Zombie/src/GameController.cpp \
-       Zombie/src/Player.cpp Zombie/src/Bullet.cpp Zombie/src/Zombie.cpp \
-       Zombie/src/Utility.cpp Zombie/src/BossZombie.cpp Zombie/src/stb.cpp
+			 Zombie/src/Player.cpp Zombie/src/Bullet.cpp Zombie/src/Zombie.cpp \
+			 Zombie/src/Utility.cpp Zombie/src/BossZombie.cpp Zombie/src/stb.cpp
 
 
 # Object files
