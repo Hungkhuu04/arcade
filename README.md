@@ -14,7 +14,11 @@ OpenGL and GLUT libraries installed
 2. In the desired folder, download the zipped file
 3. Cd into arcade-master aka repository folder.
 4. Run the build command: Type make
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> master
 ### After building the project:
 An executable named ZombieGame will be created. Run this executable to start the game:
 - ./zombie_game
