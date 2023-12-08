@@ -3,11 +3,15 @@
 
 class Bullet {
 public:
-    Bullet(float startX, float startY, float targetX, float targetY);
+    enum class BulletType {
+        Player,
+        BossZombie
+    };
+    Bullet(float startX, float startY, float targetX, float targetY, BulletType bulletType);
 
-    void Update();  // Update the bullet's position
-    void Render();  // Render the bullet
-    bool IsOffScreen() const;  // Check if the bullet is off the screen
+    void Update();
+    void Render();
+    bool IsOffScreen() const;
     float GetX() const { return x; }
     float GetY() const { return y; }
     float GetWidth() const { return width; }
@@ -15,13 +19,16 @@ public:
     float GetDamage() const { return damage; }
     void MarkForDeletion() { markedForDeletion = true; }
     bool ShouldBeRemoved() const { return markedForDeletion; }
+    BulletType GetType() const { return type; }
+    void setDamage(float newDamage) { damage = newDamage; }
 private:
-    float x, y;     // Current position
-    float speed;    // Speed of the bullet
-    float dirX, dirY; // Direction vector
-    float width, height; // Dimensions of the bullet
-    float damage;   // Damage the bullet does
-    bool markedForDeletion; // Flag to mark the bullet for deletion
+    BulletType type;
+    float x, y;
+    float speed;
+    float dirX, dirY;
+    float width, height;
+    float damage;
+    bool markedForDeletion;
 };
 
-#endif // BULLET_H
+#endif
