@@ -6,8 +6,6 @@ public:
     static bool CheckCollision(float x1, float y1, float width1, float height1,
                                float x2, float y2, float width2, float height2);
 
-    // Other utility functions like scoring system
-    static bool SimpleCollisionCheck(float x1, float y1, float x2, float y2, float threshold);
 };
 
 #endif // UTILITY_H

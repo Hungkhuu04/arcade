@@ -13,9 +13,9 @@ public:
     void MoveDown();
     void MoveLeft();
     void MoveRight();
-    void Shoot(float targetX, float targetY);  // Method for shooting bullets
-    void Update();  // Update player state
-    void Render();  // Render the player
+    void Shoot(float targetX, float targetY);
+    void Update();
+    void Render(); 
     float GetX() const { return x; }
     float GetY() const { return y; }
     void SetX(float newX) { x = newX; }
@@ -35,19 +35,19 @@ public:
     void Reset();
 
 private:
-    float x, y;     // Position
-    float speed;    // Movement speed
-    float health;   // Player health
-    float shootCooldown;    // Cooldown period between shots
-    float shootTimer;       // Timer to track time since last shot
-    float width, height;    // Dimensions of the player
-    GLuint textureID;       // Texture ID
-    float spriteWidth, spriteHeight;    // Dimensions of the sprite
+    float x, y;
+    float speed;
+    float health;
+    float shootCooldown;
+    float shootTimer;
+    float width, height;
+    GLuint textureID;
+    float spriteWidth, spriteHeight;
     float damageCooldown;
     float damageCooldownDuration;
 };
 
 
 
-#endif // PLAYER_H
+#endif
 

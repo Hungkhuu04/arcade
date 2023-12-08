@@ -3,50 +3,62 @@
 #include "lib/Bullet.h"
 #include "lib/Zombie.h"
 #include "lib/Player.h"
-#include <cstring> // For memset
-#include <algorithm> // For std::remove_if
+#include "lib/BossZombie.h"
+#include <cstring>
+#include <algorithm>
 #include <random>
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
+#include <array>
+#include <fstream>
 
-// Static member initializations
 GameController::GameState GameController::currentState = GameController::GameState::START;
 Player* GameController::player = nullptr;
 bool GameController::keyStates[256];
 std::vector<Bullet> GameController::bullets;
+std::vector<Bullet> GameController::bossZombieBullets;
 std::vector<Zombie> GameController::zombies;
+std::vector<BossZombie> GameController::bossZombies;
+int GameController::currentWave = 1;
+float GameController::timer = 0.0f;
+const int GameController::waveDuration = 10;
+float GameController::spawnTimer = 0.0f;
+float GameController::spawnRate = 2.0f;
+int GameController::score = 0;
+std::array<int, GameController::LEADERBOARD_SIZE> GameController::leaderboard = {};
 
 void GameController::Initialize() {
     currentState = GameState::START;
     bullets.clear();
+    bossZombieBullets.clear();
     zombies.clear();
-    player = new Player(0.0f, 0.0f); // Initialize player at the center
-    memset(keyStates, false, sizeof(keyStates)); // Initialize all key states to false
+    bossZombies.clear();
+    timer = 0.0f;
+    spawnTimer = 0.0f;
+    currentWave = 1;
+    player = new Player(0.0f, 0.0f);
+    memset(keyStates, false, sizeof(keyStates));
+    LoadLeaderboard();
 }
 
 void GameController::KeyboardHandler(unsigned char key, int x, int y) {
     if (currentState == GameState::START) {
         if (key == 's') {
-            Initialize(); // Initialize the game
+            Initialize();
             currentState = GameState::PLAYING;
         }
     } else if (currentState == GameState::PLAYING) {
-        // Handle keyboard inputs for gameplay
         keyStates[key] = true;
-        // ... (rest of your existing keyboard handling code for gameplay)
     } else if (currentState == GameState::GAME_OVER) {
         if (key == 'r') {
-            // Restart the game when 'r' key is pressed
-            Initialize(); // Re-initialize the game
+            Initialize();
             currentState = GameState::PLAYING;
         }
         if (key == 'x') {
-            // Exit the game when 'x' key is pressed
             exit(0);
         }
         if (key == 's') {
-            // Change to PLAYING state when 's' key is pressed
             currentState = GameState::START;
         }
     }
@@ -63,15 +75,15 @@ void GameController::UpdatePlayer() {
     if (keyStates['s'] || keyStates['S']) player->MoveDown();
     if (keyStates['a'] || keyStates['A']) player->MoveLeft();
     if (keyStates['d'] || keyStates['D']) player->MoveRight();
-    player->UpdateCooldown(1.0f / 60.0f); // Update cooldown timer
+    player->UpdateCooldown(1.0f / 60.0f);
     }
 }
 
 void GameController::Shoot(float targetX, float targetY) {
     if (currentState == GameState::PLAYING) {
     if (player->GetShootTimer() >= player->GetShootCooldown()) {
-        bullets.push_back(Bullet(player->GetX(), player->GetY(), targetX, targetY));
-        player->SetShootTimer(0.0f);  // Reset timer after shooting
+        bullets.push_back(Bullet(player->GetX(), player->GetY(), targetX, targetY, Bullet::BulletType::Player));
+        player->SetShootTimer(0.0f);
     }
     }
 }
@@ -80,14 +92,16 @@ void GameController::Shoot(float targetX, float targetY) {
 void GameController::UpdateBullets() {
     if (currentState == GameState::PLAYING) {
     float currentTimer = player->GetShootTimer();
-    currentTimer += 1.0f / 60.0f; // Increment timer by 1/60th of a second
+    currentTimer += 1.0f / 60.0f;
     player->SetShootTimer(currentTimer);
-    // Update all bullets
     for (auto &bullet : bullets) {
         bullet.Update();
     }
+    for (auto &bullet : bossZombieBullets) {
+        bullet.Update();
+    }
 
-    // Remove bullets that are off-screen
+    bossZombieBullets.erase(std::remove_if(bossZombieBullets.begin(), bossZombieBullets.end(), [](const Bullet& b) { return b.IsOffScreen(); }), bossZombieBullets.end());
     bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) { return b.IsOffScreen(); }), bullets.end());
     }
 }
@@ -105,15 +119,62 @@ void GameController::CheckBulletZombieCollisions() {
             }
         }
     }
+    for (auto& bullet : bullets) {
+            for (auto& bossZombie : bossZombies) {
+                if (bossZombie.IsDamageable() && Utility::CheckCollision(bullet.GetX(), bullet.GetY(), bullet.GetWidth(), bullet.GetHeight(),
+                                            bossZombie.GetX(), bossZombie.GetY(), bossZombie.GetWidth(), bossZombie.GetHeight())) {
+                    bossZombie.TakeDamage(bullet.GetDamage());
+                }
+            }
+        }
+    }
+    
 
-    // Remove dead zombies
+    for (const auto& zombie : zombies) {
+        if (zombie.IsDead()) {
+            score += 50;
+        }
+    }
+    for (const auto& bossZombie : bossZombies) {
+        if (bossZombie.IsDead()) {
+            score += 100;
+        }
+    }
     zombies.erase(std::remove_if(zombies.begin(), zombies.end(), 
                  [](const Zombie& z) { return z.IsDead(); }),
                  zombies.end());
-
-    // Additionally, remove bullets that have been marked for deletion
+    bossZombies.erase(std::remove_if(bossZombies.begin(), bossZombies.end(), 
+                     [](const BossZombie& bz) { return bz.IsDead(); }),
+                     bossZombies.end());
     }
+
+
+void GameController::CheckBossZombieBulletPlayerCollision() {
+    if (currentState == GameState::PLAYING) {
+    for (auto& bullet : bossZombieBullets) {
+        if (Utility::CheckCollision(bullet.GetX(), bullet.GetY(), bullet.GetWidth(), bullet.GetHeight(),
+                                    player->GetX(), player->GetY(), player->GetWidth(), player->GetHeight())) {
+            player->TakeDamage(bullet.GetDamage());
+            bullet.MarkForDeletion();
+
+            // Check if the player is dead
+            if (player->IsDead()) {
+                score += currentWave * 10;
+                UpdateLeaderboard();
+                SaveLeaderboard(); 
+                delete player;
+                currentState = GameState::GAME_OVER;
+                return;
+            }
+        }
+    }
+
+    bossZombieBullets.erase(std::remove_if(bossZombieBullets.begin(), bossZombieBullets.end(), 
+                                           [](const Bullet& b) { return b.ShouldBeRemoved(); }), 
+                                           bossZombieBullets.end());
 }
+}
+
 
 void GameController::HandlePlayerZombieCollision() {
     if (currentState == GameState::PLAYING) {
@@ -124,31 +185,19 @@ void GameController::HandlePlayerZombieCollision() {
         float zombieWidth = zombie.GetWidth();
         float zombieHeight = zombie.GetHeight();
 
-        // Check for collision
         if (Utility::CheckCollision(player->GetX(), player->GetY(), playerWidth, playerHeight,
                                     zombie.GetX(), zombie.GetY(), zombieWidth, zombieHeight)) {
-            // Collision detected - if the player is damageable, take damage
             if (player->IsDamageable()) {
                 player->TakeDamage(zombie.GetDamage());
 
-                // Check if player is dead and handle it
-                if (player->IsDead()) {
-                    delete player;
-                    currentState = GameState::GAME_OVER;
-                    return; // Exit the function early as there's no need to check other zombies
-                }
-            }
-
-            // Adjust position to prevent overlap (non-overlapping logic)
-            // Calculate direction to move
-            float dx = player->GetX() - zombie.GetX();
-            float dy = player->GetY() - zombie.GetY();
-            float distance = std::sqrt(dx * dx + dy * dy);
-
-            if (distance != 0) {
-                float overlap = (playerWidth / 2 + zombieWidth / 2) - distance;
-                player->SetX(player->GetX() + (dx / distance) * overlap);
-                player->SetY(player->GetY() + (dy / distance) * overlap);
+                    if (player->IsDead()) {
+                        score += currentWave * 10;
+                        UpdateLeaderboard();
+                        SaveLeaderboard();  // Save leaderboard when player dies
+                        delete player;
+                        currentState = GameState::GAME_OVER;
+                        return;
+                    }
             }
         }
     }
@@ -158,15 +207,27 @@ void GameController::HandlePlayerZombieCollision() {
 
 void GameController::UpdateZombies() {
     if (currentState == GameState::PLAYING) {
-    float deltaTime = 1.0f / 60.0f; // Assuming 60 FPS
+    float deltaTime = 1.0f / 60.0f;
+    timer += 1.0f / 60.0f;
 
-    // Update zombies
-    for (auto& zombie : zombies) {
-        zombie.Update(player->GetX(), player->GetY());
-        zombie.UpdateCooldown(deltaTime); // Update cooldown timer
+    if (static_cast<int>(timer) % waveDuration == 0 && timer - (1.0f / 60.0f) < static_cast<int>(timer)) {
+        IncrementWave();
     }
 
-    // Check for zombie-zombie collisions
+    for (auto& zombie : zombies) {
+        zombie.Update(player->GetX(), player->GetY());
+        zombie.UpdateCooldown(deltaTime); 
+    }
+
+    for (auto& bossZombie : bossZombies) {
+        bossZombie.Update(player->GetX(), player->GetY());
+        bossZombie.UpdateCooldown(deltaTime); 
+        if (bossZombie.WantsToShoot()) {
+            ShootFromBossZombie(bossZombie);
+        }
+    }
+
+    //Check Collisions for zombies.
     for (size_t i = 0; i < zombies.size(); ++i) {
         for (size_t j = i + 1; j < zombies.size(); ++j) {
             auto& zombie1 = zombies[i];
@@ -177,10 +238,8 @@ void GameController::UpdateZombies() {
             float zombie2Width = zombie2.GetWidth();
             float zombie2Height = zombie2.GetHeight();
 
-            // Check for collision between zombies
             if (Utility::CheckCollision(zombie1.GetX(), zombie1.GetY(), zombie1Width, zombie1Height,
                                         zombie2.GetX(), zombie2.GetY(), zombie2Width, zombie2Height)) {
-                // Calculate direction to move each zombie to avoid overlap
                 float dx = zombie1.GetX() - zombie2.GetX();
                 float dy = zombie1.GetY() - zombie2.GetY();
                 float distance = std::sqrt(dx * dx + dy * dy);
@@ -195,44 +254,171 @@ void GameController::UpdateZombies() {
             }
         }
     }
-    // Example spawning logic
-    static float spawnTimer = 0.0f;
-    spawnTimer += 1.0f / 60.0f; // Increment timer each frame (assuming 60 FPS)
 
-    // Spawn a new zombie every 5 seconds
-    if (spawnTimer >= 0.5f) {
+    //Check Collisions for bossZombies.
+       for (size_t i = 0; i < bossZombies.size(); ++i) {
+        for (size_t j = i + 1; j < bossZombies.size(); ++j) {
+            auto& bossZombie1 = bossZombies[i];
+            auto& bossZombie2 = bossZombies[j];
+
+            float bossZombie1Width = bossZombie1.GetWidth();
+            float bossZombie1Height = bossZombie1.GetHeight();
+            float bossZombie2Width = bossZombie2.GetWidth();
+            float bossZombie2Height = bossZombie2.GetHeight();
+
+            if (Utility::CheckCollision(bossZombie1.GetX(), bossZombie1.GetY(), bossZombie1Width, bossZombie1Height,
+                                        bossZombie2.GetX(), bossZombie2.GetY(), bossZombie2Width, bossZombie2Height)) {
+                float dx = bossZombie1.GetX() - bossZombie2.GetX();
+                float dy = bossZombie1.GetY() - bossZombie2.GetY();
+                float distance = std::sqrt(dx * dx + dy * dy);
+
+                if (distance != 0) {
+                    float overlap = (bossZombie1Width / 2 + bossZombie2Width / 2) - distance;
+                    bossZombie1.SetX(bossZombie1.GetX() + (dx / distance) * overlap / 2);
+                    bossZombie1.SetY(bossZombie1.GetY() + (dy / distance) * overlap / 2);
+                    bossZombie2.SetX(bossZombie2.GetX() - (dx / distance) * overlap / 2);
+                    bossZombie2.SetY(bossZombie2.GetY() - (dy / distance) * overlap / 2);
+                }
+            }
+        }
+    }
+    spawnTimer += 1.0f / 60.0f;
+    if (spawnTimer >= spawnRate) {
         SpawnZombie();
-        spawnTimer = 0.0f; // Reset timer
+        spawnTimer = 0.0f;
     }
 
-    // Remove dead zombies
     zombies.erase(std::remove_if(zombies.begin(), zombies.end(), 
                  [](const Zombie& z) { return z.IsDead(); }),
                  zombies.end());
     }
+    bossZombies.erase(std::remove_if(bossZombies.begin(), bossZombies.end(), 
+                    [](const BossZombie& bz) { return bz.IsDead(); }),
+                    bossZombies.end());
 }
 
+void GameController::ShootFromBossZombie(const BossZombie& bossZombie) {
+    float targetX = player->GetX();
+    float targetY = player->GetY();
+    bossZombieBullets.push_back(Bullet(bossZombie.GetX(), bossZombie.GetY(), targetX, targetY, Bullet::BulletType::BossZombie));
+}
 
 void GameController::SpawnZombie() {
     if (currentState == GameState::PLAYING) {
-        // Static random device and generator for random number generation
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        // Uniform distribution for random positions
         std::uniform_real_distribution<> dis(-1.0, 1.0);
 
         float minDistance = 1.0f;
         float x, y;
 
         do {
-            x = player->GetX() + dis(gen); // Random position around the player's X
-            y = player->GetY() + dis(gen); // Random position around the player's Y
+            x = player->GetX() + dis(gen);
+            y = player->GetY() + dis(gen);
         } while (std::sqrt(std::pow(x - player->GetX(), 2) + std::pow(y - player->GetY(), 2)) < minDistance);
 
-        // Add the new zombie at the calculated position
         zombies.push_back(Zombie(x, y));
     }
 }
 
+void GameController::SpawnBossZombie() {
+    if (currentState == GameState::PLAYING) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(-1.0, 1.0);
 
+        float minDistance = 1.0f;
+        float x, y;
+
+        do {
+            x = player->GetX() + dis(gen);
+            y = player->GetY() + dis(gen);
+        } while (std::sqrt(std::pow(x - player->GetX(), 2) + std::pow(y - player->GetY(), 2)) < minDistance);
+
+        bossZombies.push_back(BossZombie(x, y));
+    }
+}
+
+
+void GameController::IncrementWave() {
+    currentWave++;
+    for (auto& zombie : zombies) {
+        zombie.SetSpeed(zombie.GetSpeed() * 1.1f);
+        zombie.SetDamage(zombie.GetDamage() * 1.1f);
+        zombie.SetHealth(zombie.GetHealth() * 1.1f);
+    }
+
+    SpawnBossZombie();
+    for (auto& bossZombie : bossZombies) {
+        bossZombie.SetSpeed(bossZombie.GetSpeed() * 1.1f);
+        bossZombie.SetDamage(bossZombie.GetDamage() * 1.1f);
+        for (auto& bullet : bossZombieBullets) {
+            bullet.setDamage(bullet.GetDamage() * 1.1f);
+        }
+        bossZombie.SetHealth(bossZombie.GetHealth() * 1.1f);
+    }
+
+    spawnRate *= 0.8f;
+
+    // Ensure that spawnRate does not become too low
+    if (spawnRate < 0.1) {
+        spawnRate = 0.1;
+    }
+}
+
+
+int GameController::GetWave() {
+    return currentWave;
+}
+
+float GameController::GetTimer() {
+    return timer;
+}
+
+int GameController::GetScore() {
+    return score;
+}
+
+void GameController::UpdateLeaderboard() {
+    int position = -1;
+    for (int i = 0; i < LEADERBOARD_SIZE; ++i) {
+        if (score > leaderboard[i]) {
+            position = i;
+            break;
+        }
+    }
+
+    if (position != -1) {
+        for (int i = LEADERBOARD_SIZE - 1; i > position; --i) {
+            leaderboard[i] = leaderboard[i - 1];
+        }
+        leaderboard[position] = score;
+    }
+}
+
+void GameController::SaveLeaderboard() {
+    std::ofstream file("Zombie/src/data/leaderboard.txt");
+    if (file.is_open()) {
+        for (const auto& score : leaderboard) {
+            file << score << std::endl;
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open leaderboard file for writing." << std::endl;
+    }
+}
+
+void GameController::LoadLeaderboard() {
+    std::ifstream file("Zombie/src/data/leaderboard.txt");
+    int score;
+    int index = 0;
+    if (file.is_open()) {
+        while (file >> score && index < LEADERBOARD_SIZE) {
+            leaderboard[index++] = score;
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open leaderboard file for reading." << std::endl;
+    }
+}
 
