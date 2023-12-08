@@ -5,7 +5,7 @@
 // Constructor
 // Constructor
 Bullet::Bullet(float startX, float startY, float targetX, float targetY, BulletType bulletType)
-    : x(startX), y(startY), type(bulletType), speed(0.03f), width(0.02f), height(0.02f), markedForDeletion(false) {
+    : x(startX), y(startY), type(bulletType), speed(0.06f), width(0.02f), height(0.02f), markedForDeletion(false) {
     switch (bulletType) {
         case BulletType::Player:
             damage = 15.0f; // Example damage value for player bullet

@@ -6,7 +6,7 @@
 
 // Constructor for the Player class, initializes player attributes and loads texture
 Player::Player(float x, float y) 
-    : x(x), y(y), width(0.1125f), height(0.2f), speed(0.01f), health(100.0f), shootCooldown(0.3f), shootTimer(0.0f), damageCooldown(0.0f), damageCooldownDuration(0.25f) {
+    : x(x), y(y), speed(0.02f), health(100.0f), width(0.1125f), height(0.2f), shootCooldown(0.3f), shootTimer(0.0f), damageCooldown(0.0f), damageCooldownDuration(0.25f) {
     
     this->spriteWidth = static_cast<float>(width) * 1.05f;
     this->spriteHeight = static_cast<float>(height) * 1.05f;

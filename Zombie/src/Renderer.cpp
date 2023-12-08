@@ -110,6 +110,7 @@ void Renderer::RenderTimer(float timer) {
     glPopMatrix();
 }
 
+//Renders Score on the screen
 void Renderer::RenderScore(int score) {
     std::string scoreText = std::to_string(score);
     float scaleX = 0.0008f;
