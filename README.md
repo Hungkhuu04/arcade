@@ -11,24 +11,42 @@ OpenGL and GLUT libraries installed
 
 ### Building the Project:
 1. Open Terminal.
-2. In the desired folder, run: git clone git@github.com:Hungkhuu04/arcade.git
-3. Cd into arcade (cd arcade) aka repository folder.
-4. Run the build command (adjust paths to libraries if needed):
-   - On CSIL computers:
-
-      g++ zombieGame/arcade.cpp zombieGame/zombie.cpp -o zombie_game -lGL -lGLU -lglut
-
-    - On Local Windows computers with C++ Complier Installed(MinGW or MSVC):
-
-      g++ -m32 -o zombie_game zombieGame/arcade.cpp zombieGame/zombie.cpp -IDependencies/freeglut/include -LDependencies/freeglut/lib/Win32 -lfreeglut -lopengl32 -lglu32
+2. In the desired folder, download the zipped file
+3. Cd into arcade-master aka repository folder.
+4. Run the build command: Type make
       
 ### After building the project:
 An executable named ZombieGame will be created. Run this executable to start the game:
 - ./zombie_game
 
 ## Code Organization:
-- arcade.cpp: Contains the main game loop and initialization code.
-- zombie.cpp and zombie.h: Define the Zombie class, handling the behavior and rendering of zombies.
+Source Folder:
+- Assets:
+   - Zombie.png
+   - Player.png
+   - BossZombie.png
+   - Background.png
+- Data:
+   - Leaderboard
+- Lib:
+   - Renderer.h
+   - GameController.h
+   - Player.h
+   - Bullet.h
+   - Zombie.h
+   - Utility.h
+   - bossZombie.h
+   - stb.h      
+- main.cpp: Contains the main game loop and initialization code.
+- Renderer.cpp: Contains the render functions for displays like score, time, health and leaderboard.
+- GameController.cpp: Contains the main code the game such as input handling, game states, updating leaderboard, collision checks.
+- Player.cpp: Contains the player code to move, shoot, take damage and render.
+- Bullet.cpp: Contains the bullet code to move, inflict damage and render.
+- Zombie.cpp: Contains the player code to move, inflict damage, take damage and render. Parent Class functions for BossZombie.
+- Utility.cpp: Contains the function to check for Collisions.
+- bossZombie.cpp: Contains the bossZombie code to follow basic code from zombie and shoot bullets.
+- stb.cpp: Contains define functions for stb.h to render sprites.
 
 ## Instructions:
 - Use WASD to move the block around in their respective directions.
+- Use the mouse to shoot bullets.
