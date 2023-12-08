@@ -1,6 +1,5 @@
 # Compiler settings
 CXX = g++
-CXXFLAGS = -Wall
 
 
 # Libraries
